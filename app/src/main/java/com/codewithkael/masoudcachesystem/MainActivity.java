@@ -28,7 +28,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements IDownloadHelper{
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private ImageViewModel imageViewModel;
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements IDownloadHelper{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = findViewById(R.id.mainRecycler);
-        recyclerAdapter = new RecyclerAdapter(this,imageModelsList,this);
+        recyclerAdapter = new RecyclerAdapter(this,imageModelsList);
 
 
         locationDao = LocationDatabase.getInstance(this).getLocationDao();
@@ -75,8 +75,11 @@ public class MainActivity extends AppCompatActivity implements IDownloadHelper{
                     public void run() {
                         for (ImageModel model : imageModels){
 
-                            Log.d(TAG, "mainMasoud: "+model.getImage_id()+locationDao.exists(model.getImage_id()));
-                            locationDao.insertImages(model);
+
+                            if (!locationDao.exists(model.getImage_id())){
+                                locationDao.insertImages(model);
+                            }
+
                         }
                     }
                 });
@@ -90,15 +93,5 @@ public class MainActivity extends AppCompatActivity implements IDownloadHelper{
         recyclerView.setLayoutManager(layoutManager);
     }
 
-    @Override
-    public void OnDownloadFinished(String id, String path) {
-        Log.d(TAG, "OnDownloadFinished: "+id+"  "+path);
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                ImageModel imageModel = new ImageModel(id,path,true);
-                locationDao.update(imageModel);
-            }
-        });
-    }
+
 }

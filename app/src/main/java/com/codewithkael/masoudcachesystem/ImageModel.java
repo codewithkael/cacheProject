@@ -60,6 +60,7 @@ public class ImageModel {
         return "ImageModel{" +
                 "image_id='" + image_id + '\'' +
                 ", image_url='" + image_url + '\'' +
+                ", downloaded=" + downloaded +
                 '}';
     }
 }

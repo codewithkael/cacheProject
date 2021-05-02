@@ -18,20 +18,21 @@ import com.codewithkael.masoudcachesystem.persistence.LocationDao;
 import com.codewithkael.masoudcachesystem.persistence.LocationDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.List;
 
-public class RecyclerAdapter extends RecyclerView.Adapter<Adapter> implements IDownloadHelper{
+public class RecyclerAdapter extends RecyclerView.Adapter<Adapter> {
     private static final String TAG = "RecyclerAdapter";
-    IDownloadHelper iDownloadHelper;
+
     LocationDao locationDao;
     private Context context;
     private List<ImageModel> imageModels;
 
-    public RecyclerAdapter(Context context, List<ImageModel> imageModels,IDownloadHelper iDownloadHelper) {
+    public RecyclerAdapter(Context context, List<ImageModel> imageModels) {
         this.context = context;
         this.imageModels = imageModels;
         locationDao = LocationDatabase.getInstance(context).getLocationDao();
-        this.iDownloadHelper = iDownloadHelper;
+
 
     }
 
@@ -46,13 +47,30 @@ public class RecyclerAdapter extends RecyclerView.Adapter<Adapter> implements ID
     public void onBindViewHolder(@NonNull Adapter holder, int position) {
 
         if (imageModels.get(position).getDownloaded()){
-            Picasso.get().load(imageModels.get(position).getImage_url()).into(holder.imageView);
+            File file = new File(imageModels.get(position).getImage_url());
+            Picasso.get().load(file).into(holder.imageView);
         } else {
             holder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new DownloadFileFromURL(context,imageModels.get(position).getImage_id(),
-                            imageModels.get(position).getImage_id(),iDownloadHelper)
+                    new DownloadFileFromURL(context, imageModels.get(position).getImage_id(),
+                            imageModels.get(position).getImage_id(), new IDownloadHelper() {
+                        @Override
+                        public void OnDownloadFinished(String id, String path) {
+                            AsyncTask.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ImageModel imageModel = new ImageModel(id,path,true);
+                                    locationDao.update(imageModel);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void OnProgressChange(String id, int progress) {
+                            holder.textView.setText(String.valueOf(progress)+"%");
+                        }
+                    })
                             .execute(imageModels.get(position).getImage_url());
                 }
             });
@@ -67,9 +85,5 @@ public class RecyclerAdapter extends RecyclerView.Adapter<Adapter> implements ID
     }
 
 
-    @Override
-    public void OnDownloadFinished(String id, String path) {
-        Log.d(TAG, "OnDownloadFinished: "+id+"  "+path);
 
-    }
 }

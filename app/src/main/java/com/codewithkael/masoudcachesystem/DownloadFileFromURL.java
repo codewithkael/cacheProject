@@ -136,6 +136,7 @@ public class DownloadFileFromURL extends AsyncTask<String, Integer, String> {
     }
 
     protected void onProgressUpdate(Integer... progress) {
+        iDownloadHelper.OnProgressChange(idString,progress[0]);
         build.setProgress(100, progress[0], false);
         mNotifyManager.notify(id, build.build());
         super.onProgressUpdate(progress);
@@ -145,7 +146,7 @@ public class DownloadFileFromURL extends AsyncTask<String, Integer, String> {
     protected void onPostExecute(String file_url) {
         build.setContentText("saved in gallery");
         build.setProgress(0, 0, false);
-        iDownloadHelper.OnDownloadFinished(idString,fileurl.getAbsolutePath());
+        iDownloadHelper.OnDownloadFinished(idString,fileurl.getPath());
 
         addVideo(fileurl);
 //        Uri path = Uri.parse(String.valueOf(pathName));
